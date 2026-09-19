@@ -1,0 +1,71 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Model checkpoints & weights (these get large — track via Git LFS or not at all)
+*.pth
+*.pth.tar
+*.pt
+*.ckpt
+*.h5
+*.onnx
+
+# Data (usually too large/private for git; re-download or DVC instead)
+data/
+*.csv
+*.zip
+*.tar
+*.tar.gz
+
+# Evaluation outputs / generated results
+evaluations/
+outputs/
+results/
+logs/
+runs/
+*.png
+*.jpg
+*.jpeg
+
+# TensorBoard logs
+tensorboard_logs/
+tb_logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE (JetBrains, since you're using PyCharm/CLion-style viewer)
+.idea/
+
+# VS Code
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment variables / secrets
+.env
+*.env
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy / ruff caches
+.mypy_cache/
+.ruff_cache/
