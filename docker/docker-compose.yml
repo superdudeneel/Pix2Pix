@@ -22,7 +22,7 @@ services:
      image: pix2pix-web
      container_name: pix2pix-web
      ports:
-       - "5173:5173"
+       - "5173:80"
      depends_on:
        api:
          condition: service_healthy
