@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    image: pix2pix
+    container_name: pix2pix-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Uncomment once you have a frontend container ready.
+  # web:
+  #   build:
+  #     context: ./web
+  #     dockerfile: ../docker/Dockerfile.web
+  #   image: pix2pix-web
+  #   container_name: pix2pix-web
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+  #   environment:
+  #     - API_URL=http://api:8000

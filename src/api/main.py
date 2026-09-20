@@ -26,7 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/health", response_model=HealthResponse)
 def health():
     return HealthResponse(status="ok", model_loaded=model_service.is_ready())
