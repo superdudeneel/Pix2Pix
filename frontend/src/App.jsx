@@ -1,7 +1,4 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
 
 function App() {
@@ -55,34 +52,45 @@ function App() {
     }
 
     return (
-    <div style={{ padding: '20px', maxWidth: '400px' }}>
-      <h3>Upload a File</h3>
+    <main className="app-shell">
+      <section className="upload-card" aria-labelledby="upload-title">
+      <p className="eyebrow">Image conversion</p>
+      <h1 id="upload-title">Upload your file</h1>
+      <p className="intro">Choose an image to begin. Your converted result will appear below.</p>
       <form onSubmit={handleUpload}>
-        <input
-          type="file"
-          onChange={handleFileChange}
-          accept=".jpg,.jpeg,.png,.pdf" // Optional restriction hint
-        />
+        <label className="file-picker">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept=".jpg,.jpeg,.png,.pdf"
+          />
+          <span className="upload-icon" aria-hidden="true">↑</span>
+          <span className="picker-title">Click to choose a file</span>
+          <span className="picker-hint">JPG, PNG, or PDF</span>
+        </label>
 
         {file && (
-          <div style={{ marginTop: '10px', fontSize: '14px' }}>
-            <strong>Selected:</strong> {file.name} ({(file.size / 1024).toFixed(2)} KB)
+          <div className="file-details">
+            <span className="file-mark">FILE</span>
+            <span className="file-name">{file.name}</span>
+            <span className="file-size">{(file.size / 1024).toFixed(1)} KB</span>
           </div>
         )}
 
         <button
           type="submit"
           disabled={!file || status === 'uploading'}
-          style={{ marginTop: '15px', display: 'block' }}
+          className="upload-button"
         >
           {status === 'uploading' ? 'Uploading...' : 'Upload'}
         </button>
       </form>
 
-      {status === 'success' && <p style={{ color: 'green' }}>File uploaded! : {imageUrl}</p>}
-        {status === 'success' && <img src = {imageUrl}/>}
-      {status === 'error' && <p style={{ color: 'red' }}>Upload failed. Please try again.</p>}
-    </div>
+      {status === 'success' && <p className="status-message">Your file is ready.</p>}
+      {status === 'success' && <img className="result-image" src={imageUrl} alt="Converted result" />}
+      {status === 'error' && <p className="status-message error">Upload failed. Please try again.</p>}
+      </section>
+    </main>
   );
 }
 

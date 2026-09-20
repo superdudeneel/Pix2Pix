@@ -61,6 +61,10 @@ def main():
     BCE = nn.BCEWithLogitsLoss()
     L1Loss = nn.L1Loss()
 
+    if config.LOAD_MODEL:
+        load_checkpoint("gen.pth.tar",generator,opt_gen,config.LEARNING_RATE )
+        load_checkpoint("disc.pth.tar", discriminator, opt_disc, config.LEARNING_RATE)
+
     train_dataset = MapDataset(root_dir=config.TRAIN_DIR)
     train_loader = DataLoader(
         train_dataset,
@@ -71,7 +75,7 @@ def main():
     g_scaler = torch.cuda.amp.GradScaler()
     d_scaler = torch.cuda.amp.GradScaler()
     val_dataset = MapDataset(root_dir=config.VAL_DIR)
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=True)
 
     for epoch in range(config.NUM_EPOCHS):
         train(

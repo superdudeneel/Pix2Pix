@@ -15,7 +15,6 @@ services:
       retries: 3
       start_period: 10s
 
-  # Uncomment once you have a frontend container ready.
   web:
      build:
        context: ../frontend
