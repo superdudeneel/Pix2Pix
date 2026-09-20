@@ -1,11 +1,11 @@
 import torch
-from utils import save_checkpoint, load_checkpoint, save_some_examples
+from .utils import save_checkpoint, load_checkpoint, save_some_examples
 import torch.nn as nn
 import torch.optim as optim
-import config
-from dataset import MapDataset
-from generator_model import Generator
-from discriminator_model import Discriminator
+from . import config
+from .dataset import MapDataset
+from .generator_model import Generator
+from .discriminator_model import Discriminator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torchvision.utils import save_image

@@ -2,7 +2,7 @@ import os
 from PIL import Image
 from torch.utils.data import Dataset
 import numpy as np
-import config
+from . import config
 
 class MapDataset(Dataset):
     def __init__(self, root_dir):

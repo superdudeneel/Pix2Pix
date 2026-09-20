@@ -1,14 +1,20 @@
-FROM node:20-slim
+
+# --- Stage 1: build the app ---
+FROM node:22-alpine AS builder
 
 WORKDIR /app/frontend
 
-# Copy only package files first for better layer caching
-COPY ./package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Now copy the rest of the source
-COPY ./ ./
+COPY . .
+RUN npm run build
 
-EXPOSE 5173
+# --- Stage 2: serve with nginx ---
+FROM nginx:alpine
 
-CMD ["npm", "run", "dev", "--", "--host"]
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

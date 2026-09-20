@@ -1,5 +1,5 @@
 import torch
-import config
+from . import config
 from torchvision.utils import save_image
 
 def save_some_examples(gen, val_loader, epoch, folder):

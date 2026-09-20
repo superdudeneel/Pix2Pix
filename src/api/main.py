@@ -26,6 +26,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def load_model() -> None:
+    """Load the production model once before accepting requests."""
+    model_service.load()
+
+
 @app.get("/health", response_model=HealthResponse)
 def health():
     return HealthResponse(status="ok", model_loaded=model_service.is_ready())

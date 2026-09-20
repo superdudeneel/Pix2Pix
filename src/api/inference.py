@@ -31,13 +31,23 @@ _transform = transforms.Compose([
 class ModelService:
     """Loads the generator once and reuses it across requests."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        checkpoint_path: str = CHECKPOINT_PATH,
+        device: torch.device = DEVICE,
+        model_factory=Generator,
+        auto_load: bool = True,
+    ):
         self.model = None
-        self.load()
+        self.checkpoint_path = checkpoint_path
+        self.device = device
+        self.model_factory = model_factory
+        if auto_load:
+            self.load()
 
     def load(self):
-        model = Generator().to(DEVICE)  # pass constructor args if your class needs them
-        checkpoint = torch.load(CHECKPOINT_PATH, map_location=DEVICE)
+        model = self.model_factory().to(self.device)
+        checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
 
         # Adjust this key if your checkpoint dict uses a different name
         state_dict = checkpoint.get("state_dict", checkpoint)
@@ -54,7 +64,7 @@ class ModelService:
         start = time.time()
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        input_tensor = _transform(image).unsqueeze(0).to(DEVICE)
+        input_tensor = _transform(image).unsqueeze(0).to(self.device)
 
         output_tensor = self.model(input_tensor)
 
@@ -69,5 +79,7 @@ class ModelService:
         return buffer.getvalue(), elapsed_ms
 
 
-# Single shared instance, imported by main.py
-model_service = ModelService()
+# Single shared instance, loaded by the FastAPI startup hook.  Deferring the
+# load keeps module imports side-effect free, which is essential for tests and
+# for commands that only inspect the API schema.
+model_service = ModelService(auto_load=False)
