@@ -1,13 +1,13 @@
-# Pix2Pix — Satellite Image Translation
+# Pix2Pix — Cityscapes Image Translation
 
-A PyTorch implementation of **Pix2Pix** (conditional GAN, Isola et al. 2017) trained to translate satellite imagery to map-style images (or vice versa), depending on how `data/` is arranged.
+A PyTorch implementation of **Pix2Pix** (conditional GAN, Isola et al. 2017) trained on the **Cityscapes** dataset to translate between semantic segmentation label maps and photorealistic street-scene images (label→photo, or photo→label depending on how `data/` is arranged).
 
 ## Project Structure
 
 ```
 PixPix/
 ├── .venv/                          # Local virtual environment (not committed)
-├── data/                           # Training/validation/test image pairs
+├── data/                           # Cityscapes training/validation/test image pairs
 ├── evaluations/                    # Generated samples, metrics, evaluation outputs
 ├── src/
 │   ├── api/
@@ -45,19 +45,33 @@ PixPix/
 | File | Purpose |
 |---|---|
 | `config.py` | Central place for hyperparameters (learning rate, batch size, image size, epochs), device selection, and file paths. |
-| `dataset.py` | Loads paired satellite/map images, applies transforms/augmentations, and serves batches via `torch.utils.data.Dataset`/`DataLoader`. |
-| `generator_model.py` | U-Net-based generator that maps an input image (e.g. satellite view) to the target domain (e.g. map view). |
+| `dataset.py` | Loads paired Cityscapes images (label map + photo), applies transforms/augmentations, and serves batches via `torch.utils.data.Dataset`/`DataLoader`. |
+| `generator_model.py` | U-Net-based generator that maps an input image (e.g. segmentation label map) to the target domain (e.g. photorealistic street scene). |
 | `discriminator_model.py` | PatchGAN discriminator that classifies overlapping patches of the generated/real image pairs as real or fake. |
 | `train.py` | Orchestrates the adversarial + L1 training loop, logging, and checkpoint saving/loading. |
 | `utils.py` | Shared helpers — saving/loading checkpoints (`gen.pth.tar`, `disc.pth.tar`), saving example predictions to `evaluations/`, etc. |
 | `api/main.py` | FastAPI app exposing the trained model as a REST API (`/predict`, `/health`). |
 | `api/inference.py` | Loads `gen.pth.tar` once at startup and runs inference on uploaded images. |
 
+## Dataset — Cityscapes
+
+This project uses the [Cityscapes](https://www.cityscapes-dataset.com/) dataset, prepared in the standard Pix2Pix paired format: each training image is a single side-by-side (concatenated) image containing the **semantic segmentation label map** on one half and the corresponding **real photo** on the other half (typically 256×512, i.e. two 256×256 images joined horizontally).
+
+- Default direction is **label → photo** (segmentation map in, realistic street scene out), matching the original Pix2Pix paper's Cityscapes experiments. Flip `dataset.py`/`config.py` settings if you want **photo → label** instead.
+- Expected folder layout (adjust to match your actual `dataset.py` implementation):
+  ```
+  data/
+  ├── train/   # paired label|photo images
+  ├── val/
+  └── test/    # optional
+  ```
+- Check `dataset.py` for the exact split logic (e.g. splitting the concatenated image in half) and update `config.py` with the correct `DATA_DIR` / image size.
+
 ## From Training to Deployment
 
 Training (`train.py`) produces two checkpoint files:
 
-- **`gen.pth.tar`** — the generator's trained weights. This is the file that actually matters for deployment — it's what turns a satellite image into a map image.
+- **`gen.pth.tar`** — the generator's trained weights. This is the file that actually matters for deployment — it's what turns a Cityscapes label map into a photorealistic street image (or vice versa, depending on your configured direction).
 - **`disc.pth.tar`** — the discriminator's weights. Only needed if you want to resume training later; it plays no role in inference/serving.
 
 Once training is done, `gen.pth.tar` is loaded by `src/api/inference.py` and kept in memory by the FastAPI app (`src/api/main.py`). The model is **not** retrained or reloaded per request — it's loaded once at startup and reused, which is what makes the API responsive.
@@ -74,7 +88,7 @@ train.py  →  gen.pth.tar (+ disc.pth.tar)
         src/api/main.py  (FastAPI, exposes /predict)
                    │
                    ▼
-   Web frontend uploads a satellite image → gets back the generated map image
+   Web frontend uploads a Cityscapes-style image → gets back the generated translation
 ```
 
 The API is containerized (see `docker/Dockerfile.api`) so it can run consistently in any environment, and `docker/docker-compose.yml` ties the API (and eventually the web frontend) together as one deployable unit.
@@ -114,7 +128,7 @@ pip install -e .
 ```
 
 ### 5. Prepare the data
-Place paired training images under `data/`, split into train/val (and optionally test) folders. Each image pair is typically stored as a single side-by-side image (input | target) or as two mirrored folders — check `dataset.py` for the exact expected layout, and update the paths in `config.py` accordingly.
+Download the Cityscapes dataset (or the pre-paired Pix2Pix version of it) and place the paired train/val (and optionally test) images under `data/`. Each image pair is typically stored as a single side-by-side image (label | photo). Check `dataset.py` for the exact expected layout, and update the paths in `config.py` accordingly.
 
 ### 6. Train the model
 ```bash
@@ -136,7 +150,7 @@ Once `gen.pth.tar` exists (from step 6), start the backend API:
 uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 - `GET /health` — check the API and model are up
-- `POST /predict` — upload a satellite image (`multipart/form-data`, field name `file`), get back the generated map image
+- `POST /predict` — upload an input image (`multipart/form-data`, field name `file`), get back the generated translation
 
 Interactive API docs are available at `http://localhost:8000/docs`.
 
@@ -148,8 +162,8 @@ docker compose -f docker/docker-compose.yml up --build
 The API will be available at `http://localhost:8000`, exactly as it is when run locally with `uvicorn`.
 
 ### 11. Frontend
-The `frontend/` folder holds the web app that lets a user upload a satellite image and view the generated map image returned by `/predict`. Point its API base URL at wherever the backend is running (`http://localhost:8000` locally, or the deployed API URL in production). Its container is built from `docker/web.Dockerfile`.
+The `frontend/` folder holds the web app that lets a user upload an image and view the generated translation returned by `/predict`. Point its API base URL at wherever the backend is running (`http://localhost:8000` locally, or the deployed API URL in production). Its container is built from `docker/web.Dockerfile`.
 
 ## Notes
-- This README assumes a standard Pix2Pix layout (U-Net generator + PatchGAN discriminator, trained with adversarial loss + L1 pixel loss). Adjust the "Module overview" section if your implementation differs.
-- Update the `data/` layout and `config.py` description above with your project's actual dataset source (e.g. the SpaceNet or Maps satellite-to-map dataset) once finalized.
+- This README assumes the standard Pix2Pix Cityscapes setup (U-Net generator + PatchGAN discriminator, trained with adversarial loss + L1 pixel loss, label↔photo translation). Adjust the "Module overview" and "Dataset" sections if your implementation differs (e.g. a different split direction or a custom subset of classes).
+- Update `config.py` with the correct image size/direction settings for Cityscapes if they differ from the previous satellite/map setup (e.g. image dimensions, `LAMBDA_L1` weighting, or which side of the concatenated pair is the input vs. target).
