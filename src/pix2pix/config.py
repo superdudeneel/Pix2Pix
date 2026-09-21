@@ -3,8 +3,8 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-TRAIN_DIR = "../../data/maps/train"
-VAL_DIR = "../../data/maps/val"
+TRAIN_DIR = "../../cityscapes/train"
+VAL_DIR = "../../cityscapes/val"
 LEARNING_RATE = 2e-4
 BATCH_SIZE = 32
 NUM_WORKERS = 2
@@ -13,7 +13,7 @@ CHANNELS_IMG = 3
 L1_LAMBDA = 200
 LAMBDA_GP = 10
 NUM_EPOCHS = 50
-LOAD_MODEL = True
+LOAD_MODEL = False
 SAVE_MODEL = True
 CHECKPOINT_DISC = "disc.pth.tar"
 CHECKPOINT_GEN = "gen.pth.tar"

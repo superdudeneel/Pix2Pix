@@ -1,11 +1,11 @@
 import torch
-from .utils import save_checkpoint, load_checkpoint, save_some_examples
+from src.pix2pix.utils import save_checkpoint, load_checkpoint, save_some_examples
 import torch.nn as nn
 import torch.optim as optim
-from . import config
-from .dataset import MapDataset
-from .generator_model import Generator
-from .discriminator_model import Discriminator
+from src.pix2pix import config
+from src.pix2pix.dataset import MapDataset
+from src.pix2pix.generator_model import Generator
+from src.pix2pix.discriminator_model import Discriminator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torchvision.utils import save_image

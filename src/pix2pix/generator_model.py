@@ -33,16 +33,16 @@ class Generator(nn.Module):
         self.down3 = Block(features * 4, features * 8, down=True, act="Leaky", use_dropout=False)
         self.down4 = Block(features * 8, features * 8, down=True, act="Leaky", use_dropout=False)
         self.down5 = Block(features * 8, features * 8, down=True, act="Leaky", use_dropout=False)
-        self.down6 = Block(features * 8, features * 8, down=True, act="Leaky", use_dropout=False)
+        self.down6 = Block(features * 8, features * 8, down=True, act="Leaky", use_dropout=False) # 2 * 2
 
         self.bottleneck = nn.Sequential(
             nn.Conv2d(features * 8, features * 8, 4, 2,1 , padding_mode="reflect"),
             nn.ReLU()
-        )
-        self.up1 = Block(features * 8, features * 8, down=False, act="relu", use_dropout=True)
+        )  # 1 * 1
+        self.up1 = Block(features * 8, features * 8, down=False, act="relu", use_dropout=True) # 2 *2
         self.up2 = Block(
             features * 8 * 2, features * 8, down=False, act="relu", use_dropout=True
-        )
+        ) # 4 * 4
         self.up3 = Block(
             features * 8 * 2, features * 8, down=False, act="relu", use_dropout=True
         )
